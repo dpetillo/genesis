@@ -5,19 +5,19 @@ using System.Text;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
-namespace CodeBootStrapTest
+namespace Genesis.Test
 {
-    using CodeBootStrap;
+    using GenesisGenerator;
 
     class Program
     {
         static void Main(string[] args)
         {
-            MockGeneratorImpl g = new MockGeneratorImpl();
+            GeneralMockGenerator g = new GeneralMockGenerator();
             CompilationUnitSyntax cus = g.GetCompilationUnit();
             SyntaxTree syntaxTree = SyntaxTree.Create("output", cus);
             string outputText = syntaxTree.Root.Format().GetFullText();
-            System.IO.File.WriteAllText("..\\output.cs", outputText);
+            System.IO.File.WriteAllText("..\\..\\Output\\output.cs", outputText);
         }
     }
 }

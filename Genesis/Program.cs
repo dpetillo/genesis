@@ -2,48 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.IO;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
-namespace CodeBootStrap
+namespace Genesis
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] arg)
         {
-            /*
-           
-            string code = System.IO.File.ReadAllText(@"..\..\BootStrapper.cs");
-            SyntaxTree syntaxTree = SyntaxTree.ParseCompilationUnit(code, fileName: @"..\..\BootStrapper.cs");
-            */
-            string code = System.IO.File.ReadAllText(@"..\..\CurrentUser.cs");
-            SyntaxTree syntaxTree = SyntaxTree.ParseCompilationUnit(code, fileName: @"..\..\CurrentUser.cs");
-
+            string code = File.ReadAllText(arg[0]);
+            SyntaxTree syntaxTree = SyntaxTree.ParseCompilationUnit(code, fileName: arg[0]);
             syntaxTree = GenesisDevice.Genesis(syntaxTree);
             string outputText = syntaxTree.Root.Format().GetFullText();
-
-
-            System.IO.File.WriteAllText("..\\..\\output.cs", outputText);
-            /*
-            System.IO.File.WriteAllText("..\\..\\..\\CodeBootStrapTest\\Generator.cs", outputText);
-            */
-        }
-
-        
-    }
-
-    public static class GenesisDevice
-    {
-        public static SyntaxTree Genesis(SyntaxTree syntaxTree)
-        {
-            BootStrapper cbs = new BootStrapper(syntaxTree.Root);
-            cbs.Visit();
-
-            Generated generator = new Generated(cbs.Generated);
-            syntaxTree = SyntaxTree.Create("output", generator.GetCompilationUnit());
-
-            return syntaxTree;
+            string outputPath = Path.Combine(Path.GetDirectoryName(arg[0]), string.Format("{0}.Generator{1}", Path.GetFileNameWithoutExtension(arg[0]), Path.GetExtension(arg[0])));
+            File.WriteAllText(outputPath, outputText);
         }
     }
 

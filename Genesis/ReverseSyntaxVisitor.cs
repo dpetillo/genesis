@@ -5,7 +5,7 @@ using System.Text;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
-namespace CodeBootStrap
+namespace Genesis
 {
     public class ReverseSyntaxVisitor
     {

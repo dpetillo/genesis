@@ -7,30 +7,30 @@ using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using System.Collections;
 
-namespace CodeBootStrap
+namespace Genesis
 {
-    public class BootStrapper : ReverseSyntaxVisitor
+    public class CodeGenSyntaxVisitor : ReverseSyntaxVisitor
     {
-        static int variableCounter = 0;
         SyntaxTree syntaxTree = null;
 
-        List<MethodDeclarationSyntax> generated = new List<MethodDeclarationSyntax>();
+        List<MemberDeclarationSyntax> generated = new List<MemberDeclarationSyntax>();
         
-        //Stack<ExpressionSyntax> tokenLocals = new Stack<ExpressionSyntax>();
-        //Stack<SyntaxToken> tokenDebugStack = new Stack<SyntaxToken>();
+        Stack<ExpressionSyntax> syntaxNodeLocals = new Stack<ExpressionSyntax>();
 
-        Stack<LocalDeclarationStatementSyntax> syntaxNodeLocals = new Stack<LocalDeclarationStatementSyntax>();
+        IdentifyingSyntaxWalker identifier = new IdentifyingSyntaxWalker();
 
 
-        public List<MethodDeclarationSyntax> Generated
+        public List<MemberDeclarationSyntax> Generated
         {
             get { return generated; }
             set { generated = value; }
         }
 
-        public BootStrapper(SyntaxNode node) : base(node)
+        public CodeGenSyntaxVisitor(SyntaxNode node) : base(node)
         {
             syntaxTree = SyntaxTree.Create("output", null);
+            identifier.Visit(node);
+
         }
 
         protected override void VisitSyntaxNode(SyntaxNode node)
@@ -40,7 +40,7 @@ namespace CodeBootStrap
             
 
             MemberInfo[] members = syntaxNodeType.GetMembers(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance);
-            GGSyntaxNode(syntaxNodeType, node);
+            GenerateSourceSyntaxNode(syntaxNodeType, node);
             base.VisitSyntaxNode(node);
         }
 
@@ -54,12 +54,6 @@ namespace CodeBootStrap
 
         private ExpressionSyntax CreateToken(SyntaxToken token)
         {
-            
-            variableCounter++;
-            
-            string varName = "t" + variableCounter;
-            string funcName = "f" + variableCounter;
-
             
             ExpressionSyntax instantiateExpression;
           
@@ -126,8 +120,8 @@ namespace CodeBootStrap
             }
             if (createIdentifier)
             {
-                
-                instantiateExpression = this.Funkify(
+
+                instantiateExpression = this.Funcify(identifier.GetId(token),
                     Syntax.InvocationExpression(
                         Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.IdentifierName("Syntax"),
                             name: Syntax.IdentifierName("Identifier")),
@@ -180,7 +174,7 @@ namespace CodeBootStrap
             ExpressionSyntax exp = Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal("\"" + value + "\"", value));
             arguments.Add(CreateArgument(exp));
 
-            CreateSyntaxNode(type, "IdentifierName", arguments, separators, null);
+            BuildSyntaxNode(identifier.GetId(node), type, "IdentifierName", arguments, separators, null);
 
             base.VisitIdentiferNameSyntax(node);
         }
@@ -191,12 +185,13 @@ namespace CodeBootStrap
             base.VisitTrivia(trivia);
         }
 
-        private void GGSyntaxNode(Type type, SyntaxNode node)
+        private void GenerateSourceSyntaxNode(Type type, SyntaxNode node)
         {
             List<ArgumentSyntax> arguments = new List<ArgumentSyntax>();
             List<SyntaxToken> separators = new List<SyntaxToken>();
             Type syntaxType = typeof(Syntax);
-            string friendlyName = null;
+
+            string nodeId = identifier.GetId(node);
           
             type = node.GetType();
             string createMethodName = GetApiCreateMethod(node.GetType());
@@ -209,8 +204,8 @@ namespace CodeBootStrap
 
             MethodInfo createMethodInfo = miq.First();
 
-            List<SyntaxNode> dependentVariableDefinitions = new List<SyntaxNode>();
-            
+            List<ExpressionSyntax> dependentVariableDefinitions = new List<ExpressionSyntax>();
+
             foreach (ParameterInfo parameterInfo in createMethodInfo.GetParameters())
             {
                 
@@ -238,21 +233,20 @@ namespace CodeBootStrap
                     SyntaxNode newNode = (SyntaxNode)type.GetProperty(newParameterName).GetValue(node, null);
                     if (newNode != null)
                     {
-                        LocalDeclarationStatementSyntax decl = this.syntaxNodeLocals.Pop();
-                        if (decl.Declaration.Type.PlainName != newNode.GetType().Name)
+                        ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
+                        /*if (decl.Declaration.Type.PlainName != newNode.GetType().Name)
                         {
                             throw new ApplicationException("Types do not match when popping SyntaxNode declaration stack.");
-                        }
+                        }*/
 
                         dependentVariableDefinitions.Add(decl);
-                        string id = decl.Declaration.Variables[0].Identifier.ValueText;
-                        arguments.Add(CreateArgument(Syntax.IdentifierName(id), parameterInfo.IsOptional ? parameterInfo.Name : null));
+                        arguments.Add(CreateArgument(decl, parameterInfo.IsOptional ? parameterInfo.Name : null));
 
                         if (parameterInfo.Name == "identifier")
                         {
                             if (newNode is SimpleNameSyntax)
                             {
-                                friendlyName = ((SimpleNameSyntax)newNode).GetFullText();
+                                //friendlyName = ((SimpleNameSyntax)newNode).GetFullText();
                             }
                             //parameterInfo.ParameterType.BaseType is NameSyntax 
                         } 
@@ -271,18 +265,21 @@ namespace CodeBootStrap
 
                     Type[] genericTypes = parameterInfo.ParameterType.GetGenericArguments();
                     Type genericType = genericTypes[0];
-                    LocalDeclarationStatementSyntax listDecl = CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false);
+                    
+                    string typeName = string.Format("List<{0}>", genericType.Name);
+
+                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false), Syntax.ParseTypeName(typeName));
 
                     dependentVariableDefinitions.Add(listDecl);
 
-                    CreateSyntaxNode(parameterInfo.ParameterType, string.Format("List<{0}>", genericType.Name),
-                        new List<ArgumentSyntax> { CreateArgument(Syntax.IdentifierName(listDecl.Declaration.Variables[0].Identifier)) },
+
+                    BuildSyntaxNode("pwrap" + parameterInfo.Name, parameterInfo.ParameterType, typeName,
+                        new List<ArgumentSyntax> { CreateArgument(listDecl) },
                         new List<SyntaxToken>(), null);
 
-                    LocalDeclarationStatementSyntax decl = this.syntaxNodeLocals.Pop();
+                    ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
                     dependentVariableDefinitions.Add(decl);
-                    string id = decl.Declaration.Variables[0].Identifier.ValueText;
-                    arguments.Add(CreateArgument(Syntax.IdentifierName(id), parameterInfo.IsOptional ? parameterInfo.Name : null)); 
+                    arguments.Add(CreateArgument(decl, parameterInfo.IsOptional ? parameterInfo.Name : null)); 
                 }
                 else if (parameterInfo.ParameterType.Name == "SeparatedSyntaxList`1")
                 {
@@ -291,18 +288,18 @@ namespace CodeBootStrap
 
                     Type[] genericTypes = parameterInfo.ParameterType.GetGenericArguments();
                     Type genericType = genericTypes[0];
-                    LocalDeclarationStatementSyntax listDecl = CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true);
+
+                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true), Syntax.ParseTypeName("List<SyntaxNodeOrToken>"));
 
                     dependentVariableDefinitions.Add(listDecl);
 
-                    CreateSyntaxNode(parameterInfo.ParameterType, string.Format("SeparatedList<{0}>", genericType.Name),
-                        new List<ArgumentSyntax> { CreateArgument(Syntax.IdentifierName(listDecl.Declaration.Variables[0].Identifier)) },
+                    BuildSyntaxNode(nodeId, parameterInfo.ParameterType, string.Format("SeparatedList<{0}>", genericType.Name),
+                        new List<ArgumentSyntax> { CreateArgument(listDecl) },
                         new List<SyntaxToken>(), null);
 
-                    LocalDeclarationStatementSyntax decl = this.syntaxNodeLocals.Pop();
+                    ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
                     dependentVariableDefinitions.Add(decl);
-                    string id = decl.Declaration.Variables[0].Identifier.ValueText;
-                    arguments.Add(CreateArgument(Syntax.IdentifierName(id), parameterInfo.IsOptional ? parameterInfo.Name : null)); 
+                    arguments.Add(CreateArgument(decl, parameterInfo.IsOptional ? parameterInfo.Name : null)); 
                 }
                 else if (parameterInfo.ParameterType == typeof(SyntaxToken))
                 {
@@ -325,17 +322,19 @@ namespace CodeBootStrap
                             listInitExpressionList.Add(Syntax.Literal(",", ","));
                         }
                     }
-                    LocalDeclarationStatementSyntax listDecl = CreateListOfType(typeof(SyntaxToken), listInitExpressionList);
+
+                    string typeName = string.Format("List<{0}>", typeof(SyntaxToken).ToString());
+
+                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(typeof(SyntaxToken), listInitExpressionList), Syntax.ParseTypeName(typeName));
                     dependentVariableDefinitions.Add(listDecl);
 
-                    CreateSyntaxNode(parameterInfo.ParameterType, "TokenList",
-                        new List<ArgumentSyntax> { CreateArgument(Syntax.IdentifierName(listDecl.Declaration.Variables[0].Identifier)) },
+                    BuildSyntaxNode(nodeId, parameterInfo.ParameterType, "TokenList",
+                        new List<ArgumentSyntax> { CreateArgument( listDecl ) },
                         new List<SyntaxToken>(), null);
 
-                    LocalDeclarationStatementSyntax decl = this.syntaxNodeLocals.Pop();
+                    ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
                     dependentVariableDefinitions.Add(decl);
-                    string id = decl.Declaration.Variables[0].Identifier.ValueText;
-                    arguments.Add(CreateArgument(Syntax.IdentifierName(id), parameterInfo.IsOptional ? parameterInfo.Name : null)); 
+                    arguments.Add(CreateArgument(decl, parameterInfo.IsOptional ? parameterInfo.Name : null)); 
                 }
                 else if (parameterInfo.ParameterType == typeof(SyntaxKind))
                 {
@@ -357,24 +356,24 @@ namespace CodeBootStrap
             }
 
             separators.RemoveAt(separators.Count - 1);
-            CreateSyntaxNode(type, GetApiCreateMethod(type), arguments, separators, dependentVariableDefinitions, friendlyName);
+            BuildSyntaxNode(nodeId, type, GetApiCreateMethod(type), arguments, separators, dependentVariableDefinitions);
         }
 
 
         //Create list from stack of the memeber stack of syntax node local declarations [syntaxNodeLocals]
-        private LocalDeclarationStatementSyntax CreateListOfType(int count, Type genericType, Type popFilter, List<SyntaxNode> dependentVariableDefinitions, bool metaGenCommas, string friendlyName = null)
+        private ExpressionSyntax CreateListOfType(int count, Type genericType, Type popFilter, List<ExpressionSyntax> dependentVariableDefinitions, bool metaGenCommas)
         {
             List<SyntaxNodeOrToken> listInitExpressionList = new List<SyntaxNodeOrToken>();
             //push all the objects into a generic list, which will then be a parameter to the "Syntax.SeparatedList" invocation
             for (int i = 0; i < count; i++)
             {
-                LocalDeclarationStatementSyntax decl = this.syntaxNodeLocals.Pop();
-                if (!IsTypeDerived(decl.Declaration.Type.PlainName, popFilter)) 
+                ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
+                /*if (!IsTypeDerived(decl.Declaration.Type.PlainName, popFilter)) 
                 {
                     throw new ApplicationException("Unexpected type in syntax node stack.");
-                }
+                }*/
                 dependentVariableDefinitions.Add(decl);
-                listInitExpressionList.Add(Syntax.IdentifierName(decl.Declaration.Variables[0].Identifier));
+                listInitExpressionList.Add(decl);
                 if (i + 1 < count)
                 {
                     listInitExpressionList.Add(Syntax.Literal(",", ","));
@@ -385,77 +384,42 @@ namespace CodeBootStrap
                     listInitExpressionList.Add(Syntax.Literal(",", ","));
                 }
             }
-            LocalDeclarationStatementSyntax listDecl = CreateListOfType(genericType, listInitExpressionList);
-
-            /*
-            //new stuff
-            variableCounter++;
-            string varName = "list" + variableCounter;
-            string funcName = friendlyName == null ? "f" + variableCounter : "create" + friendlyName + variableCounter;
-
-            TypeSyntax typeSyntax = Syntax.ParseTypeName(string.Format("List<{0}>", genericType.Name));
-
-            BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(
-                listDecl,
-                Syntax.ReturnStatement(expressionOpt: Syntax.IdentifierName(listDecl.)
-            )));
-
-            MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration(modifiers: Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)),
-                identifier: Syntax.Identifier(funcName), bodyOpt: blockSyntax, returnType: typeSyntax, parameterList: Syntax.ParameterList());
-            generated.Add(methodDef);
-
-
-            InvocationExpressionSyntax localVarValue = Syntax.InvocationExpression(
-                    Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.ThisExpression(), name: Syntax.IdentifierName(funcName)), Syntax.ArgumentList());
-
-            LocalDeclarationStatementSyntax listDecl = Syntax.LocalDeclarationStatement(declaration: Syntax.VariableDeclaration(typeSyntax,
-                Syntax.SeparatedList<VariableDeclaratorSyntax>(Syntax.VariableDeclarator(Syntax.Identifier(varName), initializerOpt:
-                Syntax.EqualsValueClause(value: localVarValue)
-                ))));
-            return listDecl;
-
-            */
+            ExpressionSyntax listDecl = CreateListOfType(genericType, listInitExpressionList);
 
             return listDecl;
         }
 
-        //wrap an expression in a function
-        private ExpressionSyntax Funkify(ExpressionSyntax expression, TypeSyntax typeSyntax, string friendlyName = null)
+
+
+        private ExpressionSyntax CreateListOfType( Type genericType, List<SyntaxNodeOrToken> listInitExpressionList)
         {
-            variableCounter++;
-            string funcName = friendlyName == null ? "f" + variableCounter : "create" + friendlyName + variableCounter;
-            
+            TypeSyntax typeSyntax = Syntax.ParseTypeName(string.Format("List<{0}>", genericType.Name));
+
+            return Syntax.ObjectCreationExpression(type: typeSyntax, initializerOpt:
+                Syntax.InitializerExpression(expressions: Syntax.SeparatedList<ExpressionSyntax>(listInitExpressionList)));
+        }
+
+
+        //wrap an expression in a function
+        private InvocationExpressionSyntax Funcify(string funcName, ExpressionSyntax expression, TypeSyntax typeSyntax)
+        {
             BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(
                 Syntax.ReturnStatement(expressionOpt: expression)));
 
+            return Funcify(funcName, blockSyntax, typeSyntax);
+        }
+        //wrap a block in a function
+        private InvocationExpressionSyntax Funcify(string funcName, BlockSyntax block, TypeSyntax typeSyntax)
+        {
+
             MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration(modifiers: Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)),
-                identifier: Syntax.Identifier(funcName), bodyOpt: blockSyntax, returnType: typeSyntax, parameterList: Syntax.ParameterList());
+                identifier: Syntax.Identifier(funcName), bodyOpt: block, returnType: typeSyntax, parameterList: Syntax.ParameterList());
             generated.Add(methodDef);
 
             InvocationExpressionSyntax localVarValue = Syntax.InvocationExpression(
                     Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.ThisExpression(), name: Syntax.IdentifierName(funcName)), Syntax.ArgumentList());
 
             return localVarValue;
-        }
-
-
-        private LocalDeclarationStatementSyntax CreateListOfType(Type genericType, List<SyntaxNodeOrToken> listInitExpressionList)
-        {
-            
-            variableCounter++;
-            string varName = "list" + variableCounter;
-            TypeSyntax typeSyntax = Syntax.ParseTypeName(string.Format("List<{0}>", genericType.Name));
-
-            LocalDeclarationStatementSyntax listDecl = Syntax.LocalDeclarationStatement(declaration: Syntax.VariableDeclaration(typeSyntax,
-                Syntax.SeparatedList<VariableDeclaratorSyntax>(Syntax.VariableDeclarator(Syntax.Identifier(varName), initializerOpt:
-                Syntax.EqualsValueClause(value:
-                Syntax.ObjectCreationExpression(type: typeSyntax, initializerOpt:
-                Syntax.InitializerExpression(expressions: Syntax.SeparatedList<ExpressionSyntax>(listInitExpressionList))))))));
-            return listDecl;
-
-
-
-            
         }
 
         private bool IsTypeDerived(string typeName, Type parentType)
@@ -479,14 +443,10 @@ namespace CodeBootStrap
             return foundType;
         }
 
-        private void CreateSyntaxNode(Type type, string createMethodName, List<ArgumentSyntax> arguments, List<SyntaxToken> separators, List<SyntaxNode> dependentVariableDefinitions, string friendlyName = null)
+        private void BuildSyntaxNode(string nodeId, Type type, string createMethodName, List<ArgumentSyntax> arguments, List<SyntaxToken> separators, List<ExpressionSyntax> dependentVariableDefinitions)
         {
             ExpressionSyntax assignmentValue;
 
-            variableCounter++;
-            string varName = "v" + variableCounter;
-            string funcName = friendlyName == null? "f" + variableCounter : "create" + friendlyName + variableCounter;
-            
             TypeSyntax typeSyntax = null;
             if (type.IsGenericType)
             {
@@ -514,29 +474,12 @@ namespace CodeBootStrap
             }
             else
             {
-                dependentVariableDefinitions.Add(Syntax.ReturnStatement(expressionOpt: ieSyntax));
-                BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(dependentVariableDefinitions));
+                BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(Syntax.ReturnStatement(expressionOpt: ieSyntax)));
 
-                MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration(modifiers: Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)), 
-                    identifier: Syntax.Identifier(funcName), bodyOpt: blockSyntax, returnType: typeSyntax, parameterList: Syntax.ParameterList());
-                generated.Add(methodDef);
-
-                localVarValue = Syntax.InvocationExpression(
-                    Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.ThisExpression(), name: Syntax.IdentifierName(funcName)), Syntax.ArgumentList());
+                localVarValue = Funcify(nodeId, blockSyntax, typeSyntax);
             }
 
-            //local variable calling the node assembly function 
-            LocalDeclarationStatementSyntax ldSyntax = Syntax.LocalDeclarationStatement(
-                declaration: Syntax.VariableDeclaration(
-                typeSyntax,
-                Syntax.SeparatedList<VariableDeclaratorSyntax>(
-                Syntax.VariableDeclarator(
-                identifier: Syntax.Identifier(varName),
-                initializerOpt: Syntax.EqualsValueClause(
-                value: localVarValue
-                )))));
-
-            this.syntaxNodeLocals.Push(ldSyntax);
+            this.syntaxNodeLocals.Push(localVarValue);
         }
 
         private static ArgumentSyntax CreateArgument(ExpressionSyntax exp, string name = null)
