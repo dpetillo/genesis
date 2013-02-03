@@ -9,46 +9,72 @@ namespace Genesis
 {
     public class IdentifyingSyntaxWalker : SyntaxWalker
     {
-        private Dictionary<SyntaxNode, IList<int>> identities;
-        private Dictionary<SyntaxToken, IList<int>> tokenIdentities;
-        private Dictionary<SyntaxNode, int> greatestChildPosition;
+
+        private Dictionary<SyntaxNodeOrToken, IList<string>> identities;
+
+        private Dictionary<SyntaxNodeOrToken, int> greatestChildPosition;
 
 
-        public string GetId(SyntaxNode node)
+        public string GetId(SyntaxNodeOrToken node)
         {
-            return "ast" + String.Join("n", identities[node]);
+            return "Ast_" + String.Join("_", identities[node]);
         }
-
-        public string GetId(SyntaxToken token)
-        {
-            return "ast" + String.Join("n", tokenIdentities[token]);
-        }
-
 
         public IdentifyingSyntaxWalker()
         {
-            identities = new Dictionary<SyntaxNode, IList<int>>();
-            tokenIdentities = new Dictionary<SyntaxToken, IList<int>>();
-            greatestChildPosition = new Dictionary<SyntaxNode, int>();
+            identities = new Dictionary<SyntaxNodeOrToken, IList<string>>();
+            greatestChildPosition = new Dictionary<SyntaxNodeOrToken, int>();
         }
+
+        
         public override void Visit(SyntaxNode node)
         {
-            greatestChildPosition.Add(node, 0);
-
-            if (!(node is CompilationUnitSyntax))
-            {
-                IList<int> identity = identities[node.Parent].ToList();
-                identity.Add(++greatestChildPosition[node.Parent]);
-                identities.Add(node, identity);
-            }
+            VisitImpl(node);
 
             base.Visit(node);
         }
+
+        private void VisitImpl(SyntaxNodeOrToken nodeOrToken)
+        {
+            greatestChildPosition.Add(nodeOrToken, 0);
+
+            SyntaxNode node = nodeOrToken.AsNode();
+
+            if (!(node is CompilationUnitSyntax))
+            {
+                IList<string> identity = identities[nodeOrToken.Parent].ToList();
+                string name = null;
+                if (node is NamespaceDeclarationSyntax)
+                {
+                    name = ((NamespaceDeclarationSyntax)node).Name.PlainName;
+                }
+                else if (node is ClassDeclarationSyntax)
+                {
+                    name = ((ClassDeclarationSyntax)node).Identifier.ValueText;
+                }
+                else if (node is VariableDeclaratorSyntax)
+                {
+                    name = ((VariableDeclaratorSyntax)node).Identifier.ValueText;
+                }
+                else if (node is MethodDeclarationSyntax)
+                {
+                    name = ((MethodDeclarationSyntax)node).Identifier.ValueText;
+                }
+                else if (node is PropertyDeclarationSyntax)
+                {
+                    name = ((PropertyDeclarationSyntax)node).Identifier.ValueText;
+                }
+
+                identity.Add(
+                    string.Format("{0}{1}", name,
+                    (++greatestChildPosition[nodeOrToken.Parent]).ToString()));
+
+                identities.Add(nodeOrToken, identity);
+            }
+        }
         protected override void VisitToken(SyntaxToken token)
         {
-            IList<int> identity = identities[token.Parent].ToList();
-            identity.Add(++greatestChildPosition[token.Parent]);
-            tokenIdentities.Add(token, identity);
+            VisitImpl(token);
             base.VisitToken(token);
         }
 
@@ -56,8 +82,8 @@ namespace Genesis
         protected override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
             //TODO: assuming we run for just one compliation unit!
-            identities.Add(node, 
-                new List<int> { 0 });
+            identities.Add(node,
+                new List<string> { "0" });
 
             base.VisitCompilationUnit(node);
         }

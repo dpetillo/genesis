@@ -19,7 +19,7 @@ namespace GenesisGenerator
 
         public CompilationUnitSyntax GetCompilationUnit()
         {
-            return ast0();
+            return Ast_0();
         }
 
     }

@@ -52,7 +52,7 @@ namespace Genesis
         }
 
 
-        private ExpressionSyntax CreateToken(SyntaxToken token)
+        private ExpressionSyntax CreateToken(string argumentName, SyntaxToken token)
         {
             
             ExpressionSyntax instantiateExpression;
@@ -121,7 +121,7 @@ namespace Genesis
             if (createIdentifier)
             {
 
-                instantiateExpression = this.Funcify(identifier.GetId(token),
+                instantiateExpression = this.Funcify(identifier.GetId(token) + "_" + argumentName,
                     Syntax.InvocationExpression(
                         Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.IdentifierName("Syntax"),
                             name: Syntax.IdentifierName("Identifier")),
@@ -268,7 +268,7 @@ namespace Genesis
                     
                     string typeName = string.Format("List<{0}>", genericType.Name);
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false), Syntax.ParseTypeName(typeName));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false), Syntax.ParseTypeName(typeName));
 
                     dependentVariableDefinitions.Add(listDecl);
 
@@ -289,7 +289,7 @@ namespace Genesis
                     Type[] genericTypes = parameterInfo.ParameterType.GetGenericArguments();
                     Type genericType = genericTypes[0];
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true), Syntax.ParseTypeName("List<SyntaxNodeOrToken>"));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true), Syntax.ParseTypeName("List<SyntaxNodeOrToken>"));
 
                     dependentVariableDefinitions.Add(listDecl);
 
@@ -304,7 +304,7 @@ namespace Genesis
                 else if (parameterInfo.ParameterType == typeof(SyntaxToken))
                 {
                     SyntaxToken tokenValue = (SyntaxToken)type.GetProperty(newParameterName).GetValue(node, null);
-                    ExpressionSyntax tokenExpr = CreateToken(tokenValue);
+                    ExpressionSyntax tokenExpr = CreateToken(parameterInfo.Name, tokenValue);
                     arguments.Add(CreateArgument(tokenExpr, parameterInfo.IsOptional ? parameterInfo.Name : null)); 
                 }
                 else if (parameterInfo.ParameterType == typeof(SyntaxTokenList))
@@ -315,7 +315,7 @@ namespace Genesis
 
                     for (int i = 0; i < count; i++)
                     {
-                        ExpressionSyntax expressionSyntax = CreateToken(syntaxTokenList[i]);
+                        ExpressionSyntax expressionSyntax = CreateToken(parameterInfo.Name, syntaxTokenList[i]);
                         listInitExpressionList.Add(expressionSyntax);
                         if (i + 1 < count)
                         {
@@ -325,7 +325,7 @@ namespace Genesis
 
                     string typeName = string.Format("List<{0}>", typeof(SyntaxToken).ToString());
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + parameterInfo.Name, CreateListOfType(typeof(SyntaxToken), listInitExpressionList), Syntax.ParseTypeName(typeName));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(typeof(SyntaxToken), listInitExpressionList), Syntax.ParseTypeName(typeName));
                     dependentVariableDefinitions.Add(listDecl);
 
                     BuildSyntaxNode(nodeId, parameterInfo.ParameterType, "TokenList",
@@ -380,7 +380,7 @@ namespace Genesis
                 }
                 if (metaGenCommas && i + 1 < count)
                 {
-                    listInitExpressionList.Add(CreateToken(Syntax.Token(SyntaxKind.CommaToken)));
+                    listInitExpressionList.Add(CreateToken(null, Syntax.Token(SyntaxKind.CommaToken)));
                     listInitExpressionList.Add(Syntax.Literal(",", ","));
                 }
             }
