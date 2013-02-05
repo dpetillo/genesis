@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>"D:\GIT\genesis\Genesis\Working\Namespace.cs"</StartArguments>
+    <StartArguments>"C:\Dev\github\genesis\Genesis\Working\Generator.cs"</StartArguments>
   </PropertyGroup>
 </Project>

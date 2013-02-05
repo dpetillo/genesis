@@ -11,11 +11,12 @@ namespace Genesis
     {
         public static SyntaxTree Genesis(SyntaxTree syntaxTree)
         {
-            CodeGenSyntaxVisitor cbs = new CodeGenSyntaxVisitor(syntaxTree.Root);
+            CodeGenSyntaxVisitor cbs = new CodeGenSyntaxVisitor(syntaxTree.GetRoot());
             cbs.Visit();
 
             GeneralGenerator generator = new GeneralGenerator(cbs.Generated);
-            syntaxTree = SyntaxTree.Create("output", generator.GetCompilationUnit());
+
+            syntaxTree = SyntaxTree.Create(generator.GetCompilationUnit1(), "output");
 
             return syntaxTree;
         }

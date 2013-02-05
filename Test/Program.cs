@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Roslyn.Compilers;
@@ -13,11 +14,15 @@ namespace Genesis.Test
     {
         static void Main(string[] args)
         {
-            GeneralMockGenerator g = new GeneralMockGenerator();
+            GenesisGenerator.Generator g = new GenesisGenerator.Generator();
             CompilationUnitSyntax cus = g.GetCompilationUnit();
-            SyntaxTree syntaxTree = SyntaxTree.Create("output", cus);
-            string outputText = syntaxTree.Root.Format().GetFullText();
-            System.IO.File.WriteAllText("..\\..\\Output\\output.cs", outputText);
+            SyntaxTree syntaxTree = SyntaxTree.Create(cus);
+
+            using (var sw = new StreamWriter(File.Open("..\\..\\Output\\output.cs", FileMode.Create, FileAccess.Write)))
+            {
+                syntaxTree.GetRoot().NormalizeWhitespace().WriteTo(sw);
+                sw.Flush();
+            }
         }
     }
 }

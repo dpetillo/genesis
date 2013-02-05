@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
+using Roslyn.Compilers.Common;
 
 namespace Genesis
 {
@@ -14,26 +16,53 @@ namespace Genesis
 
         private Dictionary<SyntaxNodeOrToken, int> greatestChildPosition;
 
+        private Dictionary<SyntaxNodeOrToken, string> names;
 
         public string GetId(SyntaxNodeOrToken node)
         {
-            return "Ast_" + String.Join("_", identities[node]);
+            if (names.ContainsKey(node))
+            {
+                return names[node];
+            }
+            else
+            {
+                return "Ast_" + String.Join("_", identities[node]);
+            }
         }
 
-        public IdentifyingSyntaxWalker()
+        public IdentifyingSyntaxWalker() : base(SyntaxWalkerDepth.Trivia)
         {
             identities = new Dictionary<SyntaxNodeOrToken, IList<string>>();
             greatestChildPosition = new Dictionary<SyntaxNodeOrToken, int>();
+            names = new Dictionary<SyntaxNodeOrToken, string>();
         }
 
         
         public override void Visit(SyntaxNode node)
         {
             VisitImpl(node);
-
+            NamedImpl(node);
             base.Visit(node);
         }
 
+
+        private void NamedImpl(SyntaxNodeOrToken nodeOrToken)
+        {
+            string name = null;
+            
+            string comments = nodeOrToken.GetLeadingTrivia().ToFullString();
+            string parentComments = nodeOrToken.Parent != null ? nodeOrToken.Parent.GetLeadingTrivia().ToFullString() : null;
+
+            //if this is the hightest ast node for this comment, look for 1 bang, else 2 bangs
+            string regex = comments.Equals(parentComments) ? @"\!!(?<name>\S+)" : @"\!(?<name>\S+)";
+
+            Match match = Regex.Match(comments, regex);
+            if (match.Success)
+            {
+                name = match.Groups["name"].Value;
+                names.Add(nodeOrToken, name);
+            }
+        }
         private void VisitImpl(SyntaxNodeOrToken nodeOrToken)
         {
             greatestChildPosition.Add(nodeOrToken, 0);
@@ -46,7 +75,7 @@ namespace Genesis
                 string name = null;
                 if (node is NamespaceDeclarationSyntax)
                 {
-                    name = ((NamespaceDeclarationSyntax)node).Name.PlainName;
+                    name = ((NamespaceDeclarationSyntax)node).Name.ToString();
                 }
                 else if (node is ClassDeclarationSyntax)
                 {
@@ -64,6 +93,10 @@ namespace Genesis
                 {
                     name = ((PropertyDeclarationSyntax)node).Identifier.ValueText;
                 }
+                else if (nodeOrToken.IsToken)
+                {
+                    name = nodeOrToken.AsToken().ValueText;
+                }
 
                 identity.Add(
                     string.Format("{0}{1}", name,
@@ -72,14 +105,15 @@ namespace Genesis
                 identities.Add(nodeOrToken, identity);
             }
         }
-        protected override void VisitToken(SyntaxToken token)
+        public override void VisitToken(SyntaxToken token)
         {
             VisitImpl(token);
+            NamedImpl(token);
+
             base.VisitToken(token);
         }
 
-
-        protected override void VisitCompilationUnit(CompilationUnitSyntax node)
+        public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
             //TODO: assuming we run for just one compliation unit!
             identities.Add(node,
@@ -87,14 +121,5 @@ namespace Genesis
 
             base.VisitCompilationUnit(node);
         }
-
-        
-
-        
-
-
-
-
     }
-
 }

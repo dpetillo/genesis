@@ -26,9 +26,10 @@ namespace Genesis
             set { generated = value; }
         }
 
-        public CodeGenSyntaxVisitor(SyntaxNode node) : base(node)
+        public CodeGenSyntaxVisitor(CompilationUnitSyntax node)
+            : base(node)
         {
-            syntaxTree = SyntaxTree.Create("output", null);
+            syntaxTree = SyntaxTree.Create(node, "output");
             identifier.Visit(node);
 
         }
@@ -170,7 +171,7 @@ namespace Genesis
             List<ArgumentSyntax> arguments = new List<ArgumentSyntax>();
             List<SyntaxToken> separators = new List<SyntaxToken>();
 
-            string value = ((NameSyntax)node).PlainName;
+            string value = ((NameSyntax)node).ToString();
             ExpressionSyntax exp = Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal("\"" + value + "\"", value));
             arguments.Add(CreateArgument(exp));
 
@@ -395,8 +396,8 @@ namespace Genesis
         {
             TypeSyntax typeSyntax = Syntax.ParseTypeName(string.Format("List<{0}>", genericType.Name));
 
-            return Syntax.ObjectCreationExpression(type: typeSyntax, initializerOpt:
-                Syntax.InitializerExpression(expressions: Syntax.SeparatedList<ExpressionSyntax>(listInitExpressionList)));
+            return Syntax.ObjectCreationExpression(type: typeSyntax, argumentList: null, initializer:
+                Syntax.InitializerExpression(SyntaxKind.ObjectInitializerExpression , expressions: Syntax.SeparatedList<ExpressionSyntax>(listInitExpressionList)));
         }
 
 
@@ -404,18 +405,28 @@ namespace Genesis
         private InvocationExpressionSyntax Funcify(string funcName, ExpressionSyntax expression, TypeSyntax typeSyntax)
         {
             BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(
-                Syntax.ReturnStatement(expressionOpt: expression)));
+                Syntax.ReturnStatement(expression: expression)));
 
             return Funcify(funcName, blockSyntax, typeSyntax);
         }
         //wrap a block in a function
         private InvocationExpressionSyntax Funcify(string funcName, BlockSyntax block, TypeSyntax typeSyntax)
         {
-
-            MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration(modifiers: Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)),
-                identifier: Syntax.Identifier(funcName), bodyOpt: block, returnType: typeSyntax, parameterList: Syntax.ParameterList());
+      
+            MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration( 
+                null,
+                Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)),
+                typeSyntax, 
+                null,
+                Syntax.Identifier(funcName), 
+                null, 
+                Syntax.ParameterList(), 
+                null, 
+                block
+                );
+            
             generated.Add(methodDef);
-
+            
             InvocationExpressionSyntax localVarValue = Syntax.InvocationExpression(
                     Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.ThisExpression(), name: Syntax.IdentifierName(funcName)), Syntax.ArgumentList());
 
@@ -474,7 +485,7 @@ namespace Genesis
             }
             else
             {
-                BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(Syntax.ReturnStatement(expressionOpt: ieSyntax)));
+                BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(Syntax.ReturnStatement(expression: ieSyntax)));
 
                 localVarValue = Funcify(nodeId, blockSyntax, typeSyntax);
             }
@@ -487,7 +498,8 @@ namespace Genesis
             if (name != null)
             {
                 return Syntax.Argument(
-                        nameColonOpt: Syntax.NameColon(Syntax.Identifier(name)),
+                        nameColon: Syntax.NameColon(name),
+                        refOrOutKeyword: Syntax.Token(SyntaxKind.None),
                         expression: exp);
             }
             else

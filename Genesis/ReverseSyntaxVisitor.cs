@@ -38,12 +38,12 @@ namespace Genesis
                 _queue.Push(node);
                 base.Visit(node);
             }
-            protected override void VisitToken(SyntaxToken token)
+            public override void VisitToken(SyntaxToken token)
             {
                 _queue.Push(token);
                 base.VisitToken(token);
             }
-            protected override void VisitTrivia(SyntaxTrivia trivia)
+            public override void VisitTrivia(SyntaxTrivia trivia)
             {
                 _queue.Push(trivia);
                 base.VisitTrivia(trivia);
