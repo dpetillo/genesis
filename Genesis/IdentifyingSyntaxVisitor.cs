@@ -49,20 +49,28 @@ namespace Genesis
         private void NamedImpl(SyntaxNodeOrToken nodeOrToken)
         {
             string name = null;
-            
+            string astType = null;
             string comments = nodeOrToken.GetLeadingTrivia().ToFullString();
             string parentComments = nodeOrToken.Parent != null ? nodeOrToken.Parent.GetLeadingTrivia().ToFullString() : null;
 
             //if this is the hightest ast node for this comment, look for 1 bang, else 2 bangs
-            string regex = comments.Equals(parentComments) ? @"\!!(?<name>\S+)" : @"\!(?<name>\S+)";
+            string regex = @"@(?<ast_type>[^:\s]+):(?<name>\S+)";
 
             Match match = Regex.Match(comments, regex);
             if (match.Success)
             {
                 name = match.Groups["name"].Value;
-                names.Add(nodeOrToken, name);
+                astType = match.Groups["ast_type"].Value;
+
+                SyntaxKind syntaxKind = (SyntaxKind)Enum.Parse(typeof(SyntaxKind), astType);
+
+                if (nodeOrToken.Kind == syntaxKind)
+                {
+                    names.Add(nodeOrToken, name);
+                }
             }
         }
+
         private void VisitImpl(SyntaxNodeOrToken nodeOrToken)
         {
             greatestChildPosition.Add(nodeOrToken, 0);

@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>"C:\Dev\github\genesis\Genesis\Working\Generator.cs"</StartArguments>
+    <StartArguments>"D:\GIT\genesis\Genesis\Working\Class2.cs"</StartArguments>
   </PropertyGroup>
 </Project>
