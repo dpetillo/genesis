@@ -412,9 +412,20 @@ namespace Genesis
         {
 
             MethodDeclarationSyntax methodDef = SyntaxFactory.MethodDeclaration(typeSyntax, funcName)
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.VirtualKeyword))
                 .AddBodyStatements(block);
             
+            if (funcName != "Ast_CompilationUnit")
+            {
+                methodDef = methodDef.AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+            }
+            else
+            {
+                methodDef = methodDef.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            }
+
+            methodDef = methodDef.AddModifiers(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
+
+
             generated.Add(methodDef);
             
             InvocationExpressionSyntax localVarValue = SyntaxFactory.InvocationExpression(

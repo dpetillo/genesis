@@ -106,25 +106,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGenSyntaxVisitor.cs" />
-    <None Include="Generator.cs" />
-    <Compile Include="Generator.Generator.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="GeneralGenerator.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="GenesisDevice.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IdentifyingSyntaxVisitor.cs" />
+    <EmbeddedResource Include="OutputProject\Program.cs" />
+    <EmbeddedResource Include="OutputProject\Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReverseSyntaxVisitor.cs" />
+    <EmbeddedResource Include="OutputProject\packages.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="OutputProject\MyGenerator.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="OutputProject\MyGenerator.sln" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

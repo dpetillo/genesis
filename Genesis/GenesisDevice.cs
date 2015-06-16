@@ -14,9 +14,22 @@ namespace Genesis
             CodeGenSyntaxVisitor cbs = new CodeGenSyntaxVisitor(syntaxTree.GetCompilationUnitRoot());
             cbs.Visit();
 
-            GeneralGenerator generator = new GeneralGenerator(cbs.Generated);
+            var @class = SyntaxFactory.ClassDeclaration("MyGenerator")
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
+                .AddMembers(cbs.Generated.ToArray());
 
-            syntaxTree = SyntaxFactory.SyntaxTree(generator.GetCompilationUnit1(), path: "output");
+            var @namespace = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.IdentifierName("MyGenerator"))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Collections.Generic")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Linq")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Text")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Reflection")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Microsoft.CodeAnalysis")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Microsoft.CodeAnalysis.CSharp")))
+                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Microsoft.CodeAnalysis.CSharp.Syntax")))
+                .AddMembers(@class);
+
+            syntaxTree = SyntaxFactory.SyntaxTree(@namespace, path: "output");
 
             return syntaxTree;
         }

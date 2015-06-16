@@ -77,53 +77,58 @@ namespace Genesis
 
             SyntaxNode node = nodeOrToken.AsNode();
 
-            if ((node is CompilationUnitSyntax))
+            IList<string> identity;
+            if (node is CompilationUnitSyntax)
             {
-                identities.Add(nodeOrToken, new List<string>());
-
+                identity = new List<string>();
+                identity.Add("CompilationUnit");
+                identities.Add(nodeOrToken, identity);
+            }
+            else
+            {
+                identity = identities[nodeOrToken.Parent].ToList();
             }
 
+            string name = null;
+            if (node is NamespaceDeclarationSyntax)
+            {
+                name = ((NamespaceDeclarationSyntax)node).Name.ToString();
+            }
+            else if (node is ClassDeclarationSyntax)
+            {
+                name = ((ClassDeclarationSyntax)node).Identifier.ValueText;
+            }
+            else if (node is VariableDeclaratorSyntax)
+            {
+                name = ((VariableDeclaratorSyntax)node).Identifier.ValueText;
+            }
+            else if (node is MethodDeclarationSyntax)
+            {
+                name = ((MethodDeclarationSyntax)node).Identifier.ValueText;
+            }
+            else if (node is PropertyDeclarationSyntax)
+            {
+                name = ((PropertyDeclarationSyntax)node).Identifier.ValueText;
+            }
+            else if (node is UsingDirectiveSyntax)
+            {
+                name = ((UsingDirectiveSyntax)node).Name.ToFullString().Replace(".", string.Empty) ;
+            }
+            else if (nodeOrToken.IsToken)
+            {
+                name = nodeOrToken.AsToken().ValueText;
+            }
 
             if (!(node is CompilationUnitSyntax))
             {
-                IList<string> identity = identities[nodeOrToken.Parent].ToList();
-                string name = null;
-                if (node is NamespaceDeclarationSyntax)
-                {
-                    name = ((NamespaceDeclarationSyntax)node).Name.ToString();
-                }
-                else if (node is ClassDeclarationSyntax)
-                {
-                    name = ((ClassDeclarationSyntax)node).Identifier.ValueText;
-                }
-                else if (node is VariableDeclaratorSyntax)
-                {
-                    name = ((VariableDeclaratorSyntax)node).Identifier.ValueText;
-                }
-                else if (node is MethodDeclarationSyntax)
-                {
-                    name = ((MethodDeclarationSyntax)node).Identifier.ValueText;
-                }
-                else if (node is PropertyDeclarationSyntax)
-                {
-                    name = ((PropertyDeclarationSyntax)node).Identifier.ValueText;
-                }
-                else if (node is UsingDirectiveSyntax)
-                {
-                    name = ((UsingDirectiveSyntax)node).Name.ToFullString().Replace(".", string.Empty) ;
-                }
-                else if (nodeOrToken.IsToken)
-                {
-                    name = nodeOrToken.AsToken().ValueText;
-                }
-
                 identity.Add(
                     string.Format("{0}{1}", name,
                     (++greatestChildPosition[nodeOrToken.Parent]).ToString()));
-
                 identities.Add(nodeOrToken, identity);
             }
+
         }
+
         protected override void VisitToken(SyntaxToken token)
         {
             VisitImpl(token);
