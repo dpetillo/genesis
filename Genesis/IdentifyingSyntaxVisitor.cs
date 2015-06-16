@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Compilers.Common;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Genesis
 {
@@ -64,7 +64,7 @@ namespace Genesis
 
                 SyntaxKind syntaxKind = (SyntaxKind)Enum.Parse(typeof(SyntaxKind), astType);
 
-                if (nodeOrToken.Kind == syntaxKind)
+                if (nodeOrToken.Kind() == syntaxKind)
                 {
                     names.Add(nodeOrToken, name);
                 }
@@ -76,6 +76,13 @@ namespace Genesis
             greatestChildPosition.Add(nodeOrToken, 0);
 
             SyntaxNode node = nodeOrToken.AsNode();
+
+            if ((node is CompilationUnitSyntax))
+            {
+                identities.Add(nodeOrToken, new List<string>());
+
+            }
+
 
             if (!(node is CompilationUnitSyntax))
             {
@@ -101,6 +108,10 @@ namespace Genesis
                 {
                     name = ((PropertyDeclarationSyntax)node).Identifier.ValueText;
                 }
+                else if (node is UsingDirectiveSyntax)
+                {
+                    name = ((UsingDirectiveSyntax)node).Name.ToFullString().Replace(".", string.Empty) ;
+                }
                 else if (nodeOrToken.IsToken)
                 {
                     name = nodeOrToken.AsToken().ValueText;
@@ -113,7 +124,7 @@ namespace Genesis
                 identities.Add(nodeOrToken, identity);
             }
         }
-        public override void VisitToken(SyntaxToken token)
+        protected override void VisitToken(SyntaxToken token)
         {
             VisitImpl(token);
             NamedImpl(token);
@@ -121,6 +132,7 @@ namespace Genesis
             base.VisitToken(token);
         }
 
+        /*
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
             //TODO: assuming we run for just one compliation unit!
@@ -128,6 +140,6 @@ namespace Genesis
                 new List<string> { "0" });
 
             base.VisitCompilationUnit(node);
-        }
+        }*/
     }
 }

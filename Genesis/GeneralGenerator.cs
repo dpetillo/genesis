@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Roslyn.Compilers.CSharp;
 using GenesisGenerator;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Genesis
 {

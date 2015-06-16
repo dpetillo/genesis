@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
 
 namespace Genesis
 {
@@ -38,12 +38,12 @@ namespace Genesis
                 _queue.Push(node);
                 base.Visit(node);
             }
-            public override void VisitToken(SyntaxToken token)
+            protected override void VisitToken(SyntaxToken token)
             {
                 _queue.Push(token);
                 base.VisitToken(token);
             }
-            public override void VisitTrivia(SyntaxTrivia trivia)
+            protected override void VisitTrivia(SyntaxTrivia trivia)
             {
                 _queue.Push(trivia);
                 base.VisitTrivia(trivia);

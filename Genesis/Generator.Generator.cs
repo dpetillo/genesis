@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
+using Microsoft.CodeAnalysis.Syntax;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace GenesisGenerator
 {
@@ -19,19 +21,19 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.ArgumentListSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2()
+        protected virtual ArgumentListSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2()
         {
-            return Syntax.ArgumentList(Syntax.Token(SyntaxKind.OpenParenToken), Syntax.SeparatedList<ArgumentSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2_arguments()), Syntax.Token(SyntaxKind.CloseParenToken));
+            return SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.SeparatedList<ArgumentSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2_arguments()), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.InvocationExpressionSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2()
+        protected virtual InvocationExpressionSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2()
         {
-            return Syntax.InvocationExpression(Syntax.IdentifierName("CompilationUnit"), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2());
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName("CompilationUnit"), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.ReturnStatementSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2()
+        protected virtual ReturnStatementSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2()
         {
-            return Syntax.ReturnStatement(Syntax.Token(SyntaxKind.ReturnKeyword), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_2_2(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         protected virtual List<StatementSyntax> Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_statements()
@@ -43,9 +45,9 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.BlockSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5()
+        protected virtual BlockSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5()
         {
-            return Syntax.Block(Syntax.Token(SyntaxKind.OpenBraceToken), Syntax.List<StatementSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_statements()), Syntax.Token(SyntaxKind.CloseBraceToken));
+            return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), SyntaxFactory.List<StatementSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5_statements()), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
 
         protected virtual List<SyntaxNodeOrToken> Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4_parameters()
@@ -57,9 +59,9 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.ParameterListSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4()
+        protected virtual ParameterListSyntax Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4()
         {
-            return Syntax.ParameterList(Syntax.Token(SyntaxKind.OpenParenToken), Syntax.SeparatedList<ParameterSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4_parameters()), Syntax.Token(SyntaxKind.CloseParenToken));
+            return SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.SeparatedList<ParameterSyntax>(this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4_parameters()), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
         }
 
         protected virtual List<AttributeListSyntax> GetCompilationUnitGenerator_attributeLists()
@@ -71,18 +73,18 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual List<Roslyn.Compilers.CSharp.SyntaxToken> GetCompilationUnitGenerator_modifiers()
+        protected virtual List<SyntaxToken> GetCompilationUnitGenerator_modifiers()
         {
             return new List<SyntaxToken>
             {
-            Syntax.Token(SyntaxKind.PublicKeyword)}
+            SyntaxFactory.Token(SyntaxKind.PublicKeyword)}
 
             ;
         }
 
         protected virtual SyntaxToken Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_GetCompilationUnit3_identifier()
         {
-            return Syntax.Identifier("GetCompilationUnit");
+            return SyntaxFactory.Identifier("GetCompilationUnit");
         }
 
         protected virtual List<TypeParameterConstraintClauseSyntax> GetCompilationUnitGenerator_constraintClauses()
@@ -94,9 +96,9 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.MethodDeclarationSyntax GetCompilationUnitGenerator()
+        protected virtual MethodDeclarationSyntax GetCompilationUnitGenerator()
         {
-            return Syntax.MethodDeclaration(Syntax.List<AttributeListSyntax>(this.GetCompilationUnitGenerator_attributeLists()), Syntax.TokenList(this.GetCompilationUnitGenerator_modifiers()), Syntax.IdentifierName("CompilationUnitSyntax"), null, this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_GetCompilationUnit3_identifier(), null, this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4(), Syntax.List<TypeParameterConstraintClauseSyntax>(this.GetCompilationUnitGenerator_constraintClauses()), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5(), Syntax.Token(SyntaxKind.None));
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.List<AttributeListSyntax>(this.GetCompilationUnitGenerator_attributeLists()), SyntaxFactory.TokenList(this.GetCompilationUnitGenerator_modifiers()), SyntaxFactory.IdentifierName("CompilationUnitSyntax"), null, this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_GetCompilationUnit3_identifier(), null, this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_4(), SyntaxFactory.List<TypeParameterConstraintClauseSyntax>(this.GetCompilationUnitGenerator_constraintClauses()), this.Ast_0_GenesisGenerator8_Generator4_GetCompilationUnit5_5(), SyntaxFactory.Token(SyntaxKind.None));
         }
 
         protected virtual List<AttributeListSyntax> GeneratorClass_attributeLists()
@@ -108,18 +110,18 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual List<Roslyn.Compilers.CSharp.SyntaxToken> GeneratorClass_modifiers()
+        protected virtual List<SyntaxToken> GeneratorClass_modifiers()
         {
             return new List<SyntaxToken>
             {
-            Syntax.Token(SyntaxKind.PublicKeyword)}
+            SyntaxFactory.Token(SyntaxKind.PublicKeyword)}
 
             ;
         }
 
         protected virtual SyntaxToken Ast_0_GenesisGenerator8_Generator4_Generator3_identifier()
         {
-            return Syntax.Identifier("Generator");
+            return SyntaxFactory.Identifier("Generator");
         }
 
         protected virtual List<TypeParameterConstraintClauseSyntax> GeneratorClass_constraintClauses()
@@ -140,9 +142,9 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.ClassDeclarationSyntax GeneratorClass()
+        protected virtual ClassDeclarationSyntax GeneratorClass()
         {
-            return Syntax.ClassDeclaration(Syntax.List<AttributeListSyntax>(this.GeneratorClass_attributeLists()), Syntax.TokenList(this.GeneratorClass_modifiers()), Syntax.Token(SyntaxKind.ClassKeyword), this.Ast_0_GenesisGenerator8_Generator4_Generator3_identifier(), null, null, Syntax.List<TypeParameterConstraintClauseSyntax>(this.GeneratorClass_constraintClauses()), Syntax.Token(SyntaxKind.OpenBraceToken), Syntax.List<MemberDeclarationSyntax>(this.GeneratorClass_members()), Syntax.Token(SyntaxKind.CloseBraceToken), Syntax.Token(SyntaxKind.None));
+            return SyntaxFactory.ClassDeclaration(SyntaxFactory.List<AttributeListSyntax>(this.GeneratorClass_attributeLists()), SyntaxFactory.TokenList(this.GeneratorClass_modifiers()), SyntaxFactory.Token(SyntaxKind.ClassKeyword), this.Ast_0_GenesisGenerator8_Generator4_Generator3_identifier(), null, null, SyntaxFactory.List<TypeParameterConstraintClauseSyntax>(this.GeneratorClass_constraintClauses()), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), SyntaxFactory.List<MemberDeclarationSyntax>(this.GeneratorClass_members()), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), SyntaxFactory.Token(SyntaxKind.None));
         }
 
         protected virtual List<ExternAliasDirectiveSyntax> Namespace_externs()
@@ -172,84 +174,84 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.NamespaceDeclarationSyntax Namespace()
+        protected virtual NamespaceDeclarationSyntax Namespace()
         {
-            return Syntax.NamespaceDeclaration(Syntax.Token(SyntaxKind.NamespaceKeyword), Syntax.IdentifierName("GenesisGenerator"), Syntax.Token(SyntaxKind.OpenBraceToken), Syntax.List<ExternAliasDirectiveSyntax>(this.Namespace_externs()), Syntax.List<UsingDirectiveSyntax>(this.Namespace_usings()), Syntax.List<MemberDeclarationSyntax>(this.Namespace_members()), Syntax.Token(SyntaxKind.CloseBraceToken), Syntax.Token(SyntaxKind.None));
+            return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), SyntaxFactory.IdentifierName("GenesisGenerator"), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), SyntaxFactory.List<ExternAliasDirectiveSyntax>(this.Namespace_externs()), SyntaxFactory.List<UsingDirectiveSyntax>(this.Namespace_usings()), SyntaxFactory.List<MemberDeclarationSyntax>(this.Namespace_members()), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), SyntaxFactory.Token(SyntaxKind.None));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_7_2_1()
+        protected virtual QualifiedNameSyntax Ast_0_7_2_1()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("Roslyn"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Compilers"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("Microsoft"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("CodeAnalysis"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_7_2()
+        protected virtual QualifiedNameSyntax Ast_0_7_2()
         {
-            return Syntax.QualifiedName(this.Ast_0_7_2_1(), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("CSharp"));
+            return SyntaxFactory.QualifiedName(this.Ast_0_7_2_1(), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("CSharp"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax Ast_0_7()
+        protected virtual UsingDirectiveSyntax Ast_0_7()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_7_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_7_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_6_2()
+        protected virtual QualifiedNameSyntax Ast_0_6_2()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("Roslyn"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Compilers"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("Microsoft"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("CodeAnalysis"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax Ast_0_6()
+        protected virtual UsingDirectiveSyntax Ast_0_6()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_6_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_6_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_5_2()
+        protected virtual QualifiedNameSyntax Ast_0_5_2()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("System"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Reflection"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Reflection"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax Ast_0_5()
+        protected virtual UsingDirectiveSyntax Ast_0_5()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_5_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_5_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_4_2()
+        protected virtual QualifiedNameSyntax Ast_0_4_2()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("System"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Text"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Text"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax Ast_0_4()
+        protected virtual UsingDirectiveSyntax Ast_0_4()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_4_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_4_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_3_2()
+        protected virtual QualifiedNameSyntax Ast_0_3_2()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("System"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Linq"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Linq"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax Ast_0_3()
+        protected virtual UsingDirectiveSyntax Ast_0_3()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_3_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_3_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_2_2_1()
+        protected virtual QualifiedNameSyntax Ast_0_2_2_1()
         {
-            return Syntax.QualifiedName(Syntax.IdentifierName("System"), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Collections"));
+            return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Collections"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.QualifiedNameSyntax Ast_0_2_2()
+        protected virtual QualifiedNameSyntax Ast_0_2_2()
         {
-            return Syntax.QualifiedName(this.Ast_0_2_2_1(), Syntax.Token(SyntaxKind.DotToken), Syntax.IdentifierName("Generic"));
+            return SyntaxFactory.QualifiedName(this.Ast_0_2_2_1(), SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Generic"));
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax SecondUsing()
+        protected virtual UsingDirectiveSyntax SecondUsing()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, this.Ast_0_2_2(), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(this.Ast_0_2_2());
         }
 
-        protected virtual Roslyn.Compilers.CSharp.UsingDirectiveSyntax FirstUsing()
+        protected virtual UsingDirectiveSyntax FirstUsing()
         {
-            return Syntax.UsingDirective(Syntax.Token(SyntaxKind.UsingKeyword), null, Syntax.IdentifierName("System"), Syntax.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System"));
         }
 
         protected virtual List<ExternAliasDirectiveSyntax> CompilationUnit_externs()
@@ -288,9 +290,9 @@ namespace GenesisGenerator
             ;
         }
 
-        protected virtual Roslyn.Compilers.CSharp.CompilationUnitSyntax CompilationUnit()
+        protected virtual CompilationUnitSyntax CompilationUnit()
         {
-            return Syntax.CompilationUnit(Syntax.List<ExternAliasDirectiveSyntax>(this.CompilationUnit_externs()), Syntax.List<UsingDirectiveSyntax>(this.CompilationUnit_usings()), Syntax.List<AttributeListSyntax>(this.CompilationUnit_attributeLists()), Syntax.List<MemberDeclarationSyntax>(this.CompilationUnit_members()), Syntax.Token(SyntaxKind.EndOfFileToken));
+            return SyntaxFactory.CompilationUnit(SyntaxFactory.List<ExternAliasDirectiveSyntax>(this.CompilationUnit_externs()), SyntaxFactory.List<UsingDirectiveSyntax>(this.CompilationUnit_usings()), SyntaxFactory.List<AttributeListSyntax>(this.CompilationUnit_attributeLists()), SyntaxFactory.List<MemberDeclarationSyntax>(this.CompilationUnit_members()), SyntaxFactory.Token(SyntaxKind.EndOfFileToken));
         }
 
         public CompilationUnitSyntax GetCompilationUnit()

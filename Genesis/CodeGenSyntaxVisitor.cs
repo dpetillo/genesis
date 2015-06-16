@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
 using System.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Genesis
 {
@@ -25,20 +26,17 @@ namespace Genesis
             get { return generated; }
             set { generated = value; }
         }
-
+        
         public CodeGenSyntaxVisitor(CompilationUnitSyntax node)
             : base(node)
         {
-            syntaxTree = SyntaxTree.Create(node, "output");
+            syntaxTree = SyntaxFactory.SyntaxTree(node, path: "output");
             identifier.Visit(node);
-
         }
 
         protected override void VisitSyntaxNode(SyntaxNode node)
         {
             Type syntaxNodeType = node.GetType();
-
-            
 
             MemberInfo[] members = syntaxNodeType.GetMembers(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Instance);
             GenerateSourceSyntaxNode(syntaxNodeType, node);
@@ -61,18 +59,18 @@ namespace Genesis
             SyntaxKind literalExpressionSyntaxKind = SyntaxKind.NullLiteralExpression;
             bool createLiteral = true;
             bool createIdentifier = false;
-            
-            SyntaxToken literalToken = Syntax.Literal("GENERATOR_ERROR", "GENERATOR_ERROR");
-            if (token.Kind == SyntaxKind.StaticKeyword)
+
+            SyntaxToken literalToken = SyntaxFactory.Literal("GENERATOR_ERROR", "GENERATOR_ERROR");
+            if (token.Kind() == SyntaxKind.StaticKeyword)
             {
 
             }
             string valueText = "GENERATOR_ERROR";
-            switch (token.Kind)
+            switch (token.Kind())
             {
                 case SyntaxKind.CharacterLiteralToken:
                     literalExpressionSyntaxKind = SyntaxKind.CharacterLiteralExpression;
-                    literalToken = Syntax.Literal(token.ValueText, (char)token.Value);
+                    literalToken = SyntaxFactory.Literal(token.ValueText, (char)token.Value);
                     valueText = "\"" + EscapeString("\"" + (string)token.ValueText + "\"") + "\"";
 
                     break;
@@ -80,22 +78,22 @@ namespace Genesis
                     literalExpressionSyntaxKind = SyntaxKind.NumericLiteralExpression;
                     if (token.Value is int)
                     {
-                        literalToken = Syntax.Literal(token.ValueText, (int)token.Value);
+                        literalToken = SyntaxFactory.Literal(token.ValueText, (int)token.Value);
                         valueText = "\"" + EscapeString((string)token.ValueText) + "\"";
                     }
                     else if (token.Value is decimal)
                     {
-                        literalToken = Syntax.Literal(token.ValueText, (decimal)token.Value);
+                        literalToken = SyntaxFactory.Literal(token.ValueText, (decimal)token.Value);
                         valueText = "\"" + EscapeString((string)token.ValueText) + "\"";
                     }
                     else if (token.Value is float)
                     {
-                        literalToken = Syntax.Literal(token.ValueText, (float)token.Value);
+                        literalToken = SyntaxFactory.Literal(token.ValueText, (float)token.Value);
                         valueText = "\"" + EscapeString((string)token.ValueText) + "\"";
                     }
                     else if (token.Value is long)
                     {
-                        literalToken = Syntax.Literal(token.ValueText, (long)token.Value);
+                        literalToken = SyntaxFactory.Literal(token.ValueText, (long)token.Value);
                         valueText = "\"" + EscapeString((string)token.ValueText) + "\"";
                     }
                     else
@@ -109,7 +107,7 @@ namespace Genesis
 
                     valueText = "\"" + EscapeString("\"" + EscapeString((string)token.ValueText) + "\"") + "\"";
 
-                    literalToken = Syntax.Literal(valueText, valueText);
+                    literalToken = SyntaxFactory.Literal(valueText, valueText);
                     
                     break;
                 case SyntaxKind.IdentifierToken:
@@ -123,37 +121,37 @@ namespace Genesis
             {
 
                 instantiateExpression = this.Funcify(identifier.GetId(token) + "_" + argumentName,
-                    Syntax.InvocationExpression(
-                        Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.IdentifierName("Syntax"),
-                            name: Syntax.IdentifierName("Identifier")),
-                                Syntax.ArgumentList(arguments: Syntax.SeparatedList<ArgumentSyntax>(
-                                    Syntax.Argument(expression:
-                                        Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal("\"" + EscapeString((string)token.Value) + "\"", "\"" + EscapeString((string)token.Value) + "\""))
-                                            )))), Syntax.ParseTypeName("SyntaxToken"));
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("SyntaxFactory"),
+                            name: SyntaxFactory.IdentifierName("Identifier")),
+                                SyntaxFactory.ArgumentList(arguments: SyntaxFactory.SeparatedList<ArgumentSyntax>().Add(
+                                    SyntaxFactory.Argument(expression:
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("\"" + EscapeString((string)token.Value) + "\"", "\"" + EscapeString((string)token.Value) + "\""))
+                                            )))), SyntaxFactory.ParseTypeName("SyntaxToken"));
             }
             else if (!createLiteral)
             {
-                instantiateExpression = Syntax.InvocationExpression(
-                Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.IdentifierName("Syntax"),
-                    name: Syntax.IdentifierName("Token")),
-                        Syntax.ArgumentList(arguments: Syntax.SeparatedList<ArgumentSyntax>(
-                            Syntax.Argument(expression:
-                                Syntax.MemberAccessExpression(
-                                    SyntaxKind.MemberAccessExpression,
-                                    Syntax.IdentifierName("SyntaxKind"),
-                                    name: Syntax.IdentifierName(token.Kind.ToString())))
+                instantiateExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("SyntaxFactory"),
+                    name: SyntaxFactory.IdentifierName("Token")),
+                        SyntaxFactory.ArgumentList(arguments: SyntaxFactory.SeparatedList<ArgumentSyntax>().Add(
+                            SyntaxFactory.Argument(expression:
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName("SyntaxKind"),
+                                    name: SyntaxFactory.IdentifierName(token.Kind().ToString())))
                                     )));
             }
             else
             {
                 
-                instantiateExpression = Syntax.InvocationExpression(
-                Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.IdentifierName("Syntax"),
-                    name: Syntax.IdentifierName("Literal")),
-                        Syntax.ArgumentList(arguments: Syntax.SeparatedList<ArgumentSyntax>(
-                            Syntax.Argument(expression: Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal(valueText, valueText))),
-                            Syntax.Token(SyntaxKind.CommaToken),
-                            Syntax.Argument(expression: Syntax.LiteralExpression(literalExpressionSyntaxKind, literalToken)))));
+                instantiateExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("SyntaxFactory"),
+                    name: SyntaxFactory.IdentifierName("Literal")),
+                        SyntaxFactory.ArgumentList(arguments: SyntaxFactory.SeparatedList<ArgumentSyntax>()
+                            .Add(SyntaxFactory.Argument(expression: SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(valueText, valueText))))
+                            .Add(SyntaxFactory.Argument(expression: SyntaxFactory.LiteralExpression(literalExpressionSyntaxKind, literalToken)))
+                            ));
                 
             }
             return instantiateExpression;
@@ -172,7 +170,7 @@ namespace Genesis
             List<SyntaxToken> separators = new List<SyntaxToken>();
 
             string value = ((NameSyntax)node).ToString();
-            ExpressionSyntax exp = Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal("\"" + value + "\"", value));
+            ExpressionSyntax exp = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("\"" + value + "\"", value));
             arguments.Add(CreateArgument(exp));
 
             BuildSyntaxNode(identifier.GetId(node), type, "IdentifierName", arguments, separators, null);
@@ -190,7 +188,7 @@ namespace Genesis
         {
             List<ArgumentSyntax> arguments = new List<ArgumentSyntax>();
             List<SyntaxToken> separators = new List<SyntaxToken>();
-            Type syntaxType = typeof(Syntax);
+            Type syntaxType = typeof(SyntaxFactory);
 
             string nodeId = identifier.GetId(node);
           
@@ -255,7 +253,7 @@ namespace Genesis
                     }
                     else
                     {
-                        arguments.Add(CreateArgument(Syntax.LiteralExpression(SyntaxKind.NullLiteralExpression), parameterInfo.IsOptional ? parameterInfo.Name : null));
+                        arguments.Add(CreateArgument(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression), parameterInfo.IsOptional ? parameterInfo.Name : null));
                     }
                 }
                 //TODO: List handling has some repeated code... potential for refactoring
@@ -269,7 +267,7 @@ namespace Genesis
                     
                     string typeName = string.Format("List<{0}>", genericType.Name);
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false), Syntax.ParseTypeName(typeName));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, genericType, genericType, dependentVariableDefinitions, false), SyntaxFactory.ParseTypeName(typeName));
 
                     dependentVariableDefinitions.Add(listDecl);
 
@@ -290,7 +288,7 @@ namespace Genesis
                     Type[] genericTypes = parameterInfo.ParameterType.GetGenericArguments();
                     Type genericType = genericTypes[0];
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true), Syntax.ParseTypeName("List<SyntaxNodeOrToken>"));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(count, typeof(SyntaxNodeOrToken), genericType, dependentVariableDefinitions, true), SyntaxFactory.ParseTypeName("List<SyntaxNodeOrToken>"));
 
                     dependentVariableDefinitions.Add(listDecl);
 
@@ -320,13 +318,13 @@ namespace Genesis
                         listInitExpressionList.Add(expressionSyntax);
                         if (i + 1 < count)
                         {
-                            listInitExpressionList.Add(Syntax.Literal(",", ","));
+                            listInitExpressionList.Add(SyntaxFactory.Literal(",", ","));
                         }
                     }
 
                     string typeName = string.Format("List<{0}>", typeof(SyntaxToken).ToString());
 
-                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(typeof(SyntaxToken), listInitExpressionList), Syntax.ParseTypeName(typeName));
+                    ExpressionSyntax listDecl = Funcify(nodeId + "_" + parameterInfo.Name, CreateListOfType(typeof(SyntaxToken), listInitExpressionList), SyntaxFactory.ParseTypeName(typeName));
                     dependentVariableDefinitions.Add(listDecl);
 
                     BuildSyntaxNode(nodeId, parameterInfo.ParameterType, "TokenList",
@@ -339,20 +337,20 @@ namespace Genesis
                 }
                 else if (parameterInfo.ParameterType == typeof(SyntaxKind))
                 {
-                    arguments.Add(CreateArgument(Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, 
-                        Syntax.IdentifierName("SyntaxKind"), name: Syntax.IdentifierName(Enum.GetName(typeof(SyntaxKind), node.Kind))),
+                    arguments.Add(CreateArgument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, 
+                        SyntaxFactory.IdentifierName("SyntaxKind"), name: SyntaxFactory.IdentifierName(Enum.GetName(typeof(SyntaxKind), node.Kind()))),
                         parameterInfo.IsOptional ? parameterInfo.Name : null));
                 }
                 else
                 {
                     throw new ApplicationException("Unknown parameter to SyntaxNode creator.");
                     //System.Object value = type.GetProperty(newParameterName, BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance).GetValue(node, null);
-                    //arguments.Add(CreateArgument(Syntax.LiteralExpression(SyntaxKind.StringLiteralExpression, Syntax.Literal("asdf", (string)value)), parameterInfo.IsOptional ? parameterInfo.Name : null));
+                    //arguments.Add(CreateArgument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("asdf", (string)value)), parameterInfo.IsOptional ? parameterInfo.Name : null));
                 }
 
                 //if (!(parameterInfo.ParameterType == typeof(LiteralExpressionSyntax)) && !(parameterInfo.ParameterType == typeof(SyntaxTokenList)))
                 {
-                    separators.Add(Syntax.Literal(",", ","));
+                    separators.Add(SyntaxFactory.Literal(",", ","));
                 }
             }
 
@@ -365,7 +363,7 @@ namespace Genesis
         private ExpressionSyntax CreateListOfType(int count, Type genericType, Type popFilter, List<ExpressionSyntax> dependentVariableDefinitions, bool metaGenCommas)
         {
             List<SyntaxNodeOrToken> listInitExpressionList = new List<SyntaxNodeOrToken>();
-            //push all the objects into a generic list, which will then be a parameter to the "Syntax.SeparatedList" invocation
+            //push all the objects into a generic list, which will then be a parameter to the "SyntaxFactory.SeparatedList" invocation
             for (int i = 0; i < count; i++)
             {
                 ExpressionSyntax decl = this.syntaxNodeLocals.Pop();
@@ -377,12 +375,12 @@ namespace Genesis
                 listInitExpressionList.Add(decl);
                 if (i + 1 < count)
                 {
-                    listInitExpressionList.Add(Syntax.Literal(",", ","));
+                    listInitExpressionList.Add(SyntaxFactory.Literal(",", ","));
                 }
                 if (metaGenCommas && i + 1 < count)
                 {
-                    listInitExpressionList.Add(CreateToken(null, Syntax.Token(SyntaxKind.CommaToken)));
-                    listInitExpressionList.Add(Syntax.Literal(",", ","));
+                    listInitExpressionList.Add(CreateToken(null, SyntaxFactory.Token(SyntaxKind.CommaToken)));
+                    listInitExpressionList.Add(SyntaxFactory.Literal(",", ","));
                 }
             }
             ExpressionSyntax listDecl = CreateListOfType(genericType, listInitExpressionList);
@@ -394,41 +392,33 @@ namespace Genesis
 
         private ExpressionSyntax CreateListOfType( Type genericType, List<SyntaxNodeOrToken> listInitExpressionList)
         {
-            TypeSyntax typeSyntax = Syntax.ParseTypeName(string.Format("List<{0}>", genericType.Name));
+            TypeSyntax typeSyntax = SyntaxFactory.ParseTypeName(string.Format("List<{0}>", genericType.Name));
 
-            return Syntax.ObjectCreationExpression(type: typeSyntax, argumentList: null, initializer:
-                Syntax.InitializerExpression(SyntaxKind.ObjectInitializerExpression , expressions: Syntax.SeparatedList<ExpressionSyntax>(listInitExpressionList)));
+            return SyntaxFactory.ObjectCreationExpression(type: typeSyntax, argumentList: null, initializer:
+                SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression , expressions: SyntaxFactory.SeparatedList<ExpressionSyntax>(listInitExpressionList)));
         }
 
 
         //wrap an expression in a function
         private InvocationExpressionSyntax Funcify(string funcName, ExpressionSyntax expression, TypeSyntax typeSyntax)
         {
-            BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(
-                Syntax.ReturnStatement(expression: expression)));
+            BlockSyntax blockSyntax = SyntaxFactory.Block(statements: SyntaxFactory.List<SyntaxNode>().Add(
+                SyntaxFactory.ReturnStatement(expression: expression)));
 
             return Funcify(funcName, blockSyntax, typeSyntax);
         }
         //wrap a block in a function
         private InvocationExpressionSyntax Funcify(string funcName, BlockSyntax block, TypeSyntax typeSyntax)
         {
-      
-            MethodDeclarationSyntax methodDef = Syntax.MethodDeclaration( 
-                null,
-                Syntax.TokenList(Syntax.Token(SyntaxKind.ProtectedKeyword), Syntax.Token(SyntaxKind.VirtualKeyword)),
-                typeSyntax, 
-                null,
-                Syntax.Identifier(funcName), 
-                null, 
-                Syntax.ParameterList(), 
-                null, 
-                block
-                );
+
+            MethodDeclarationSyntax methodDef = SyntaxFactory.MethodDeclaration(typeSyntax, funcName)
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword), SyntaxFactory.Token(SyntaxKind.VirtualKeyword))
+                .AddBodyStatements(block);
             
             generated.Add(methodDef);
             
-            InvocationExpressionSyntax localVarValue = Syntax.InvocationExpression(
-                    Syntax.MemberAccessExpression(SyntaxKind.MemberAccessExpression, Syntax.ThisExpression(), name: Syntax.IdentifierName(funcName)), Syntax.ArgumentList());
+            InvocationExpressionSyntax localVarValue = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ThisExpression(), name: SyntaxFactory.IdentifierName(funcName)), SyntaxFactory.ArgumentList());
 
             return localVarValue;
         }
@@ -436,7 +426,7 @@ namespace Genesis
         private bool IsTypeDerived(string typeName, Type parentType)
         {
             bool foundType = false;
-            Type typeSearch = typeof(Syntax).Assembly.GetType("Roslyn.Compilers.CSharp." + typeName);
+            Type typeSearch = typeof(SyntaxFactory).Assembly.GetType("" + typeName);
 
             if (typeSearch == null)
             {
@@ -461,20 +451,20 @@ namespace Genesis
             TypeSyntax typeSyntax = null;
             if (type.IsGenericType)
             {
-                typeSyntax = Syntax.ParseTypeName(string.Format("{0}<{1}>", type.Name.Replace("`1", string.Empty), type.GetGenericArguments()[0].Name));
+                typeSyntax = SyntaxFactory.ParseTypeName(string.Format("{0}<{1}>", type.Name.Replace("`1", string.Empty), type.GetGenericArguments()[0].Name));
             }
             else
             {
-                typeSyntax = Syntax.ParseTypeName(type.FullName);
+                typeSyntax = SyntaxFactory.ParseTypeName(type.FullName);
             }
 
-            InvocationExpressionSyntax ieSyntax = Syntax.InvocationExpression(
-                Syntax.MemberAccessExpression(
-                kind: SyntaxKind.MemberAccessExpression,
-                expression: Syntax.IdentifierName("Syntax"),
-                name: Syntax.IdentifierName(createMethodName),
-                operatorToken: Syntax.Token(SyntaxKind.DotToken)),
-                Syntax.ArgumentList(arguments: Syntax.SeparatedList<ArgumentSyntax>(arguments.ToArray(), separators.ToArray())) // 
+            InvocationExpressionSyntax ieSyntax = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                kind: SyntaxKind.SimpleMemberAccessExpression,
+                expression: SyntaxFactory.IdentifierName("SyntaxFactory"),
+                name: SyntaxFactory.IdentifierName(createMethodName),
+                operatorToken: SyntaxFactory.Token(SyntaxKind.DotToken)),
+                SyntaxFactory.ArgumentList(arguments: SyntaxFactory.SeparatedList<ArgumentSyntax>(arguments.ToArray(), separators.ToArray())) // 
                 );
             assignmentValue = ieSyntax;
 
@@ -485,7 +475,7 @@ namespace Genesis
             }
             else
             {
-                BlockSyntax blockSyntax = Syntax.Block(statements: Syntax.List<SyntaxNode>(Syntax.ReturnStatement(expression: ieSyntax)));
+                BlockSyntax blockSyntax = SyntaxFactory.Block(statements: SyntaxFactory.List<SyntaxNode>().Add(SyntaxFactory.ReturnStatement(expression: ieSyntax)));
 
                 localVarValue = Funcify(nodeId, blockSyntax, typeSyntax);
             }
@@ -497,14 +487,14 @@ namespace Genesis
         {
             if (name != null)
             {
-                return Syntax.Argument(
-                        nameColon: Syntax.NameColon(name),
-                        refOrOutKeyword: Syntax.Token(SyntaxKind.None),
+                return SyntaxFactory.Argument(
+                        nameColon: SyntaxFactory.NameColon(name),
+                        refOrOutKeyword: SyntaxFactory.Token(SyntaxKind.None),
                         expression: exp);
             }
             else
             {
-                return Syntax.Argument(expression: exp);
+                return SyntaxFactory.Argument(expression: exp);
             }
         }
 
