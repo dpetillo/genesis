@@ -1,3 +1,11 @@
+Genesis is an experiment in code generation with Roslyn.  
+
+It takes an input source file, and will construct a code generator able to produce that file.  Functions of this narrow generator can then be overriden to create a more general code generator.
+
+This is not a working repo.  Proof of concept was achieved with little usability.  
+
+
+
                                                            +--------------------+
                                                            |                    |
                                                            |   Data (Schema)    |
