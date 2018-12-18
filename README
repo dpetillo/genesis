@@ -5,23 +5,23 @@ It takes an input source file, and will construct a code generator able to produ
 This is not a working repo.  Proof of concept was achieved with little usability.  
 
 
-
-                                                           +--------------------+
-                                                           |                    |
-                                                           |   Data (Schema)    |
-                                                           |                    |
-                                                           +----------+---------+
-                                                                      |
-                                                                      |
-+-------------+        +----------------------------+      +----------v---------+
-|             |        |                            |      |                    |
-|   Genesis   +-------->   General Code Generator   +------>   Code Generator   |
-|             |        |                            |      |                    |
-+-------------+        +----------------------------+      +----------+---------+
-                                                                      |
-                                                                      |
-                                                           +----------v---------+
-                                                           |                    |
-                                                           |   Generated Code   |
-                                                           |                    |
-                                                           +--------------------+
++-----------------+                                          +--------------------+
+|                 |                                          |                    |
+|  Code Template  |                                          |    Data (Schema)   |
+|                 |                                          |                    |
++--------+--------+                                          +----------+---------+
+         |                                                              |
+         |                                                              |
+  +------v------+        +----------------------------+      +----------v---------+
+  |             |        |                            |      |                    |
+  |   Genesis   +-------->   Template Code Generator  +------>       General      |
+  |             |        |                            |      |   Code Generator   |
+  +-------------+        +----------------------------+      |                    |
+                                                             +----------+---------+
+                                                                        |
+                                                                        |
+                                                             +----------v---------+
+                                                             |                    |
+                                                             |   Generated Code   |
+                                                             |                    |
+                                                             +--------------------+
